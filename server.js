@@ -3,6 +3,8 @@ const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const authRoutes = require('./routes/authRoutes')
+const profileRoutes = require('./routes/profileRoutes')
+const path = require('path');
 
 const app = express()
 
@@ -16,8 +18,12 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .catch(err => console.log(err));
 
 
+// Serve uploaded images statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes)
 
 
 const PORT = process.env.PORT || 5000;

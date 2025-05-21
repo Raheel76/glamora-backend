@@ -29,6 +29,35 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
+  firstName: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'First name cannot exceed 50 characters'],
+  },
+  lastName: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'Last name cannot exceed 50 characters'],
+  },
+  mobileNumber: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function (v) {
+        return v ? /^\+?\d{10,}$/.test(v) : true; 
+      },
+      message: 'Please provide a valid mobile number',
+    },
+  },
+  address: {
+    type: String,
+    trim: true,
+    maxlength: [200, 'Address cannot exceed 200 characters'],
+  },
+  profileImage: {
+    type: String, 
+    trim: true,
+  },
   resetPasswordOtp: String,
   resetPasswordOtpExpires: Date,
   resetPasswordToken: String,
