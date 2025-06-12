@@ -9,7 +9,7 @@ const productSchema = new mongoose.Schema({
   description: { type: String, required: true },
   token: { type: String, required: true, unique: true },
   sizes: [{ type: String, required: true }],
-  images: [{ type: String, required: true }], // Array of image URLs
+  images: [{ type: String, required: true }],
   fitType: { type: String, required: true },
   stretch: { type: String, required: true },
   transparency: { type: String, required: true },

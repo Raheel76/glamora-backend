@@ -6,6 +6,7 @@ const profileRoutes = require('./routes/profileRoutes');
 const productRoutes = require('./routes/productRoutes');
 const path = require('path');
 const connectDB = require('./config/db');
+const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Connect to MongoDB
 connectDB();
