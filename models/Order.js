@@ -19,9 +19,11 @@ const orderSchema = new mongoose.Schema({
     apartment: { type: String },
     city: { type: String, required: true },
     state: { type: String, required: true },
+    country: { type: String, required: true, default: 'United States' },
     zipCode: { type: String, required: true }
   },
   paymentMethod: { type: String, required: true, enum: ['card', 'paypal', 'cod'] },
+  paymentIntentId: { type: String }, // For Stripe payments
   subtotal: { type: Number, required: true },
   shipping: { type: Number, required: true },
   tax: { type: Number, required: true },
