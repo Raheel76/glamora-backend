@@ -19,7 +19,16 @@ const productSchema = new mongoose.Schema({
   occasion: { type: String, required: true },
   designDetails: { type: String, required: true },
   note: { type: String, required: true },
+  stock: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
+  
+});
+
+productSchema.virtual('reviews', {
+  ref: 'Review',
+  localField: '_id',
+  foreignField: 'productId',
+  justOne: false
 });
 
 module.exports = mongoose.model('Product', productSchema);

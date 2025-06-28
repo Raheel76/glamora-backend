@@ -7,6 +7,7 @@ exports.getUserNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({ userId: req.user._id })
       .populate('orderId', 'orderNumber')
+      .populate('productId', '_id')
       .sort({ createdAt: -1 })
       .limit(50);
 
@@ -107,12 +108,14 @@ exports.getAllNotifications = async (req, res) => {
     const notifications = await Notification.find({})
       .populate('userId', 'email firstName lastName')
       .populate('orderId', 'orderNumber')
+      .populate('productId', 'name')
       .sort({ createdAt: -1 });
 
     const formattedNotifications = notifications.map(notification => ({
       ...notification.toObject(),
       recipientEmail: notification.userId?.email,
-      orderNumber: notification.orderId?.orderNumber
+      orderNumber: notification.orderId?.orderNumber,
+      productName: notification.productId?.name
     }));
 
     res.status(200).json({

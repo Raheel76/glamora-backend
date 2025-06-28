@@ -1,4 +1,4 @@
-const Product = require('../models/Product');
+const Product = require('../models/product');
 const crypto = require('crypto');
 const fs = require('fs').promises;
 const path = require('path');
@@ -36,8 +36,22 @@ exports.createProduct = async (req, res) => {
 // Get all products
 exports.getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
-    res.status(200).json(products);
+    const products = await Product.find().populate({
+      path: 'reviews',
+      populate: { path: 'userId', select: 'firstName lastName profileImage' }
+    });
+    const productsWithReviewStats = products.map(product => {
+      const reviews = product.reviews || [];
+      const reviewCount = reviews.length;
+      const reviewAvg = reviewCount > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount) : 0;
+      // Convert product to object to add fields
+      const prodObj = product.toObject();
+      prodObj.reviewCount = reviewCount;
+      prodObj.reviewAvg = reviewAvg;
+      return prodObj;
+    });
+    res.status(200).json(productsWithReviewStats);
+
   } catch (error) {
     res.status(500).json({ message: 'Error fetching products', error: error.message });
   }
@@ -59,7 +73,7 @@ exports.getProductById = async (req, res) => {
 // Update a product
 exports.updateProduct = async (req, res) => {
   try {
-    const { sizes, existingImages, ...otherFields } = req.body;
+    const { sizes, existingImages, stock, ...otherFields } = req.body;
 
     // Parse sizes and existingImages
     const parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
@@ -93,6 +107,7 @@ exports.updateProduct = async (req, res) => {
       sizes: parsedSizes,
       images,
       token: existingProduct.token,
+      stock: typeof stock !== 'undefined' ? Number(stock) : existingProduct.stock || 0,
     };
 
     const updatedProduct = await Product.findByIdAndUpdate(req.params.id, productData, { new: true });

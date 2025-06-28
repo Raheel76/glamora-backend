@@ -11,6 +11,11 @@ const notificationSchema = new mongoose.Schema({
     ref: 'Order',
     default: null 
   },
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    default: null
+  },
   title: { 
     type: String, 
     required: true 
@@ -21,7 +26,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: { 
     type: String, 
-    enum: ['order_update', 'order_delivered', 'promotion', 'general'], 
+    enum: ['order_update', 'order_delivered', 'promotion', 'general', 'review_reminder'], 
     default: 'general' 
   },
   read: { 

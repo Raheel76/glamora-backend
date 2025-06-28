@@ -1,6 +1,8 @@
 const Order = require('../models/Order');
 const Notification = require('../models/Notification');
 const AdminWallet = require('../models/AdminWallet');
+const Product = require('../models/product');
+
 
 exports.createOrder = async (req, res) => {
   try {
@@ -11,6 +13,16 @@ exports.createOrder = async (req, res) => {
 
     const order = new Order(orderData);
     await order.save();
+
+    // Decrement product stock for each item in the order
+    for (const item of order.items) {
+      const product = await Product.findById(item.productId);
+      if (product) {
+        // Decrement stock by the quantity ordered
+        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+        await product.save();
+      }
+    }
 
     // Update admin wallet
     await updateAdminWallet(order);
@@ -107,15 +119,34 @@ exports.cancelOrder = async (req, res) => {
     // Update admin wallet
     await updateAdminWallet(order);
 
-    // Send cancellation notification
-    const notification = new Notification({
+    // Send cancellation notification to user
+    const userNotification = new Notification({
       userId: req.user._id,
       orderId: order._id,
       title: 'Order Cancelled',
       message: `Your order #${order.orderNumber} has been cancelled successfully. Refund will be processed within 3-5 business days.`,
       type: 'order_update'
     });
-    await notification.save();
+    await userNotification.save();
+
+    // Send refund request notification to admin
+    const adminNotification = new Notification({
+      userId: req.user._id, // This will be used to identify the customer
+      orderId: order._id,
+      title: 'Refund Request',
+      message: `A refund request has been initiated for order #${order.orderNumber}. Amount to be refunded: Rs.${order.total}`,
+      type: 'general'
+    });
+    await adminNotification.save();
+
+    // Return products to stock
+    for (const item of order.items) {
+      const product = await Product.findById(item.productId);
+      if (product) {
+        product.stock += item.quantity;
+        await product.save();
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -184,6 +215,18 @@ exports.updateOrderStatus = async (req, res) => {
     if (status === 'delivered') {
       notificationTitle = 'Order Delivered!';
       notificationMessage = `Great news! Your order #${order.orderNumber} has been delivered successfully. Thank you for shopping with us!`;
+       // Add review reminder notifications for each product
+       for (const item of order.items) {
+        const reviewNotification = new Notification({
+          userId: order.userId,
+          orderId: order._id,
+          productId: item.productId,
+          title: `How was your ${item.name}?`,
+          message: `Click here to review the product and share your experience.`,
+          type: 'review_reminder'
+        });
+        await reviewNotification.save();
+      }
     } else if (status === 'shipped') {
       notificationTitle = 'Order Shipped';
       notificationMessage = `Your order #${order.orderNumber} has been shipped and is on its way to you. You can track your package using the tracking information.`;
@@ -228,6 +271,7 @@ const updateAdminWallet = async (order) => {
 
     // Add new transaction
     const transaction = {
+      userId: order.userId,
       orderId: order._id,
       orderNumber: order.orderNumber,
       customerName: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`,

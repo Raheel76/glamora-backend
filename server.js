@@ -10,7 +10,8 @@ const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-
+const reviewRoutes = require('./routes/reviewRoutes');
+const walletRoutes = require('./routes/walletRoutes');
 
 const app = express();
 
@@ -28,6 +29,9 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/wallet', walletRoutes);
+
 // Connect to MongoDB
 connectDB();
 

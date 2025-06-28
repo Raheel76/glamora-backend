@@ -4,35 +4,18 @@ const Order = require('../models/Order');
 // Create payment intent
 exports.createPaymentIntent = async (req, res) => {
   try {
-    const { amount, paymentMethodId } = req.body;
+    const { amount } = req.body;
 
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount), // Amount in cents
       currency: 'usd',
-      payment_method: paymentMethodId,
-      confirmation_method: 'manual',
-      confirm: true,
-      return_url: `${process.env.CLIENT_URL}/order-confirmation`,
+      // confirmation_method: 'automatic', // default, can omit
+      // confirm: false, // default, can omit
     });
 
-    if (paymentIntent.status === 'requires_action') {
-      return res.json({
-        requiresAction: true,
-        clientSecret: paymentIntent.client_secret
-      });
-    }
-
-    if (paymentIntent.status === 'succeeded') {
-      return res.json({
-        success: true,
-        clientSecret: paymentIntent.client_secret,
-        paymentIntent
-      });
-    }
-
     res.json({
-      error: 'Payment failed'
+      clientSecret: paymentIntent.client_secret,
     });
   } catch (error) {
     console.error('Payment error:', error);
